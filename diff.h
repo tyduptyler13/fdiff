@@ -2,28 +2,42 @@
 #define MYUPLAY_DIFF
 
 #include <vector>
-#include <ostream>
+#include <string>
 
 namespace MyUPlay {
 
-	template <typename T, typename Container = std::vector<T>>
 	class Diff {
-
-		private:
-
-		struct Change {
-			unsigned startA, endA;
-			unsigned startB, endB;
-			Container content;
-		};
-
-		std::vector<Change> changes;
 
 		public:
 
-		bool diff(const Container& a, const Container& b, unsigned threads);
+			/*Places where the files are matched.
+			 *  (Moves cost very little, exact matches have lowest cost, deletes cost nothing)
+			 */
+			struct Match { //Places where things were moved or remain in a different document.
+				unsigned int startA;
+				unsigned int startB;
+				unsigned int length = 0;
+			};
 
-		void generatePatch(const std::ostream&) const; 
+			struct Addition { //Places where new content was created.
+				unsigned int startB;
+				std::string data;
+
+				Addition(unsigned int startB, std::string data) : startB(startB), data(data){}
+			};
+
+		private:
+
+			std::vector<Match> matches;
+			std::vector<Addition> additions;
+
+		public:
+
+			void patch(std::string out);
+			const std::vector<Match>& getMatches() const;
+			const std::vector<Addition>& getAdditions() const;
+
+			Diff(std::string a, std::string b, bool binary = false);
 
 	};
 

@@ -1,89 +1,86 @@
 
 #include "diff.h"
 
-#include <thread>
-#include <mutex>
-#include <functional>
-#include <queue>
+#include <fstream>
+#include <exception>
+#include <algorithm>
 
 using namespace std;
 using namespace MyUPlay;
 
-template <typename T, typename Container>
-bool Diff<T, Container>::diff(const Container& a, const Container& b, unsigned threads){
+const vector<Diff::Match>& Diff::getMatches() const {
+	return matches;
+}
 
-	vector<vector<Change>> paths;
-	mutex pathLock;
+const vector<Diff::Addition>& Diff::getAdditions() const {
+	return additions;
+}
 
-	vector<thread> threadPool;
-	queue<unsigned> tasks;
-	mutex taskLock;
+Diff::Diff(string a, string b, bool binary){
 
-	//Find matches in the list, while branching to find the optimal match.
-	const function<void(const Container& a, const Container& b, vector<Change>&, unsigned)> matcher
-	       	= [&](const Container& a, const Container& b, vector<Change>& changes, unsigned start){
+	ifstream fileA;
+	ifstream fileB;
+	if (binary){
+		fileA.open(a, ios::binary);
+		fileB.open(b, ios::binary);
+	} else {
+		fileA.open(a);
+		fileB.open(b);
+	}
 
-		unsigned posA = start; //Current position for recording.
-		unsigned recA = 0; //Recorded to. (For avoiding rerecording changes.)
-		unsigned recB = 0;
+	if (!fileA.is_open() || !fileB.is_open() || !fileA.good() || !fileB.good()){
+		throw runtime_error("At least one of the files could not be opened properly");
+	}
 
-		for (; posA < a.size(); ++posA){
+	const string dataA = string(istreambuf_iterator<char>(fileA), istreambuf_iterator<char>()),
+	      dataB = string(istreambuf_iterator<char>(fileB), istreambuf_iterator<char>());
 
-			for (unsigned posB = recB; posB < b.size(); ++posB) {
+	for (size_t i = 0; i + 8 < dataB.length(); ++i){
 
-				if (a[posA] == b[posB]){ //Match
+		string piece = dataB.substr(i, 8); //Min match length is 8
 
-					if (posB != rec){ //There must be new content in b.
-						changes.emplace_back(Change(
-					}
+		Match m;
 
-				}
+		for (size_t pos = dataA.find(piece); pos != string::npos; pos = dataA.find(piece, pos)){
+			//positive match
 
+			unsigned int length = 8;
+
+			for (unsigned int posA = pos + 8, posB = i + 8; posA < dataA.length() && posB < dataB.length() && dataA[posA] == dataB[posB]; ++posA, ++posB, ++length){} //Gets the full length of the match.
+
+			if (m.length < length){
+				m.length = length;
+				m.startA = pos;
+				m.startA = i;
 			}
 
 		}
 
-	};
-
-	//Retrieves the next task for a thread to munch on.
-	function<void()> poolBoy = [&](){
-
-		while(true){
-
-			taskLock.lock();
-
-			if (tasks.size() == 0) break;
-
-			unsigned point = tasks.front();
-			tasks.pop();
-
-			taskLock.unlock();
-
-			
-			vector<Change> changes;
-			pathLock.lock();
-			paths.push(changes);
-			pathLock.unlock();
-
-			matcher(a[point], b);
-
+		if (m.length != 0){
+			matches.push_back(m);
+			i += m.length; //Skip the rest of the checks.
+			//The above could be removed to improve possible matches, but isn't needed.
 		}
 
-	};
-
-	//Starting matching.
-
-	for (unsigned i = 0; i < threads; ++i){
-		threadPool.push_back(thread(&poolBoy));
 	}
 
-	//Wait for matching.
+	//Add additions.
+	for (unsigned match = 0, last = 0; match < matches.size(); ++match){
 
-	for (thread& t : threadPool){
-		t.join();
+		const Match& m = matches[match];
+
+		if (m.startB != last){ //Missing before.
+			additions.push_back(Addition(last, dataB.substr(last, m.startB - last)));
+		}
+
+		last = m.startB + m.length;
+
 	}
 
-	//Done with matching.
+
+}
+
+int main(int argc, char** argv){
 
 }
 
