@@ -1,2 +1,7 @@
 .ycm*
 *.swp
+.*
+!.git*
+*.o
+diff
+*.patch

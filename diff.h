@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <array>
 
 namespace MyUPlay {
 
@@ -30,12 +31,24 @@ namespace MyUPlay {
 
 			std::vector<Match> matches;
 			std::vector<Addition> additions;
+			std::array<unsigned char, 32> hash;
+			unsigned length; //New files output length.
 
 		public:
 
 			void patch(std::string out);
-			const std::vector<Match>& getMatches() const;
-			const std::vector<Addition>& getAdditions() const;
+			const std::vector<Match>& getMatches() const {
+				return matches;
+			}
+			const std::vector<Addition>& getAdditions() const {
+				return additions;
+			}
+			const std::array<unsigned char, 32>& getHash() const {
+				return hash;
+			}
+			unsigned getLength() const {
+				return length;
+			}
 
 			Diff(std::string a, std::string b, bool binary = false);
 
