@@ -1,14 +1,14 @@
 CXX=clang++
 LIBS=`pkg-config capnp openssl --libs`
 
-all: diff
+all: fdiff
 
 clean:
-	rm diff
+	rm fdiff
 	rm -rf *.o
 
 storage.o: storage.capnp.c++ storage.capnp.h
 	$(CXX) --std=c++11 -c storage.capnp.c++ -o storage.o
 
-diff: diff.h diff.cc storage.o
-	$(CXX) -o diff -std=c++11 -Wall -Wextra -pedantic -O2 -g diff.cc storage.o $(LIBS)
+fdiff: fdiff.h fdiff.cc storage.o
+	$(CXX) -o fdiff -std=c++11 -Wall -Wextra -pedantic -O2 -g fdiff.cc storage.o $(LIBS)

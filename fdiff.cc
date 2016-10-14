@@ -1,5 +1,4 @@
 
-#include "diff.h"
 #include "storage.capnp.h"
 
 #include <fstream>
@@ -12,6 +11,7 @@
 
 #include <capnp/message.h>
 #include <capnp/serialize-packed.h>
+#include "fdiff.h"
 
 using namespace std;
 using namespace MyUPlay;
