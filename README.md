@@ -5,6 +5,10 @@ Welcome to fdiff. This is a simple program designed to do forward differencing o
 
 Fdiff was primarily designed to work as a game patcher but can be used in nearly any setting.
 
+Notice
+------
+The algorithm used in this patching tool is terrible. :p I created it but never got around to cleaning it up and iterating on its design. This project will remain here as an archived repo for anyone that wishes to view it but I have no plans to ever develop on it again.
+
 Usage
 -----
 Default (create patch):
